@@ -8,6 +8,11 @@
 
 <br>
 
+## 발표 자료
+- [📘 Presentation](https://drive.google.com/file/d/1FFbesPAgV_ak4uMUXe47PrLwlC43FISh/view?usp=sharing)
+
+<br>
+
 ## 프로젝트 기획 배경 
 프랑스어를 전공하며 사람들이 언어 장벽 없이 자유롭게 소통할 수 있을 만큼의 정확한 번역 모델을 만드는 데 기여하고 싶다는 목표를 가졌고, 
 이를 위해 딥러닝을 이용한 기계 번역 모델을 직접 구현해 보기 위해 기획
