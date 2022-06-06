@@ -38,6 +38,13 @@
 
 <br>
 
+## 데이터셋
+- French - English
+- 데이터셋 크기: (192340, 2)
+- [데이터 출처](http://www.manythings.org/anki/)
+
+<br>
+
 ## 제작 과정
 
 #### 텍스트 전처리 
