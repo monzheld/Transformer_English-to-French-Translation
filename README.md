@@ -1,5 +1,5 @@
 # Transformer_English-to-French-Translation
-딥러닝을 이용한 영어-프랑스어 기계 번역 모델 
+딥러닝을 이용한 영어-프랑스어 기계 번역 모델 구현
 
 <br>
 
