@@ -126,18 +126,37 @@ def point_wise_feed_forward_network(d_model, dff):
         ])
 
 
+class PreLayerNormalization(tf.keras.layers.Layer):
+    def __init__(self, epsilon=1e-6):
+        super(PreLayerNormalization, self).__init__()
+        self.epsilon = epsilon
+
+    def build(self, input_shape):
+        d_model = input_shape[-1]
+        self.gamma = self.add_weight("gamma", shape=[d_model], initializer="ones")
+        self.beta = self.add_weight("beta", shape=[d_model], initializer="zeros")
+        super(PreLayerNormalization, self).build(input_shape)
+
+    def call(self, inputs):
+        mean = tf.keras.backend.mean(inputs, axis=-1, keepdims=True)
+        variance = tf.keras.backend.mean(tf.keras.backend.square(inputs - mean), axis=-1, keepdims=True)
+        norm_inputs = (inputs - mean) / tf.keras.backend.sqrt(variance + self.epsilon)
+        output = self.gamma * norm_inputs + self.beta
+        return output
+
+
 class EncoderBlock(tf.keras.layers.Layer):
     def __init__(self, d_model, num_heads, dff, rate=0.1):
         super(EncoderBlock, self).__init__()
 
         # Multi-Head Attention
         self.mha = MultiHeadAttention(d_model, num_heads)
-        self.layernorm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+        self.layernorm1 = PreLayerNormalization()
         self.dropout1 = tf.keras.layers.Dropout(rate)
 
         # Position-wise FFNN
         self.ffn = point_wise_feed_forward_network(d_model, dff)
-        self.layernorm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+        self.layernorm2 = PreLayerNormalization()
         self.dropout2 = tf.keras.layers.Dropout(rate)
     
     def call(self, x, training, mask):
@@ -146,10 +165,12 @@ class EncoderBlock(tf.keras.layers.Layer):
 
         # attn_output, _ = self.mha(x, x, x, mask)  # (batch_size, input_seq_len, d_model)
         # attn_output = self.dropout1(attn_output, training=training)
+        ## self.layernorm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         # out1 = self.layernorm1(x + attn_output)  # (batch_size, input_seq_len, d_model)
 
         # ffn_output = self.ffn(out1)  # (batch_size, input_seq_len, d_model)
         # ffn_output = self.dropout2(ffn_output, training=training)
+        ## self.layernorm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         # out2 = self.layernorm2(out1 + ffn_output)  # (batch_size, input_seq_len, d_model)
 
 
@@ -182,17 +203,17 @@ class DecoderBlock(tf.keras.layers.Layer):
 
         # self-attention in Decoder
         self.mha1 = MultiHeadAttention(d_model, num_heads)
-        self.layernorm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+        self.layernorm1 = PreLayerNormalization()
         self.dropout1 = tf.keras.layers.Dropout(rate)
 
         # Encoder-Decoder attention
         self.mha2 = MultiHeadAttention(d_model, num_heads)
-        self.layernorm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+        self.layernorm2 = PreLayerNormalization()
         self.dropout2 = tf.keras.layers.Dropout(rate)
 
         # Position-wise FFNN
         self.ffn = point_wise_feed_forward_network(d_model, dff)
-        self.layernorm3 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+        self.layernorm3 = PreLayerNormalization()
         self.dropout3 = tf.keras.layers.Dropout(rate)
     
     def call(self, x, enc_output, training, look_ahead_mask, padding_mask):
@@ -202,14 +223,17 @@ class DecoderBlock(tf.keras.layers.Layer):
 
         # attn1, attn_weights_block1 = self.mha1(x, x, x, look_ahead_mask)  # (batch_size, target_seq_len, d_model)
         # attn1 = self.dropout1(attn1, training=training)
+        ## self.layernorm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         # out1 = self.layernorm1(attn1 + x)
 
         # attn2, attn_weights_block2 = self.mha2(enc_output, enc_output, out1, padding_mask)  # (batch_size, target_seq_len, d_model)
         # attn2 = self.dropout2(attn2, training=training)
+        ## self.layernorm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         # out2 = self.layernorm2(attn2 + out1)  # (batch_size, target_seq_len, d_model)
 
         # ffn_output = self.ffn(out2)  # (batch_size, target_seq_len, d_model)
         # ffn_output = self.dropout3(ffn_output, training=training)
+        ## self.layernorm3 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         # out3 = self.layernorm3(ffn_output + out2)  # (batch_size, target_seq_len, d_model)
 
 
