@@ -46,7 +46,9 @@ class TranslationDataset():
 
     return data
   
-  def split_dataset(self, data):
+  def split_dataset(self, data=None):
+    if data is None:
+      data = self.get_dataset()
     # Shuffle data
     data = data.sample(frac=1, random_state=42)
 
