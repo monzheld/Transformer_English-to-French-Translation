@@ -11,6 +11,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from keras.utils import pad_sequences
 
+
 class TranslationDataset():
   def __init__(self):
     self.data = self.get_dataset()
@@ -178,4 +179,5 @@ class Tokenization():
   def vocab_size(self):
     input_vocab_size = self.tokenizer_src.vocab_size + 2
     target_vocab_size = self.tokenizer_trg.vocab_size + 2
+    
     return input_vocab_size, target_vocab_size
