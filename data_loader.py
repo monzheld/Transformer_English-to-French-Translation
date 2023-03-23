@@ -179,5 +179,4 @@ class Tokenization():
   def vocab_size(self):
     input_vocab_size = self.tokenizer_src.vocab_size + 2
     target_vocab_size = self.tokenizer_trg.vocab_size + 2
-    
     return input_vocab_size, target_vocab_size
