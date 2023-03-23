@@ -9,8 +9,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-
+from keras.utils import pad_sequences
 
 class TranslationDataset():
   def __init__(self):
