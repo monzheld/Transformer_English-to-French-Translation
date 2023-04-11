@@ -1,4 +1,5 @@
 import os
+import logging
 import urllib3
 import zipfile
 import shutil
@@ -9,7 +10,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from keras.utils import pad_sequences
+
+logging.getLogger('tensorflow').setLevel(logging.ERROR)  
+
+MAXLEN = 100
 
 
 class TranslationDataset():
@@ -98,12 +102,13 @@ class Preprocess():
 
 
 class Tokenization():
-  def __init__(self):
+  def __init__(self, maxlen=MAXLEN):
     super(Tokenization, self).__init__()
     preprocessed = Preprocess()
     self.train_dataset, self.val_dataset, self.test_dataset = preprocessed.preprocess()
 
     self.tokenizer_src, self.tokenizer_trg = self.create_tokenizer(self.train_dataset)
+    self.maxlen = maxlen
   
   def create_tokenizer(self, train_dataset):
     # Create tokenizers with train_dataset
@@ -151,28 +156,22 @@ class Tokenization():
 
     return result_src, result_trg
   
-  def add_padded_batch(self, dataset, batch_size, padded_shapes):
-    return dataset.padded_batch(batch_size, padded_shapes=padded_shapes)
+  def make_batches(self, dataset, buffer_size, batch_size):
+    dataset = (
+        dataset
+        .cache()
+        .shuffle(buffer_size)
+        .map(self.tf_encode, num_parallel_calls=tf.data.AUTOTUNE)
+        .batch(batch_size, drop_remainder=True)
+    )
+    return dataset
   
-  def add_pad_sequences(self, dataset, maxlen=100):
-    return dataset.map(lambda x, y: (pad_sequences(x, maxlen=maxlen, padding='post'), 
-                                   pad_sequences(y, maxlen=maxlen, padding='post')))
+  def tokenization(self, buffer_size, batch_size):
 
-  def tokenization(self, batch_size, maxlen):
-    # Tokenize datasets
-    train_dataset = self.train_dataset.map(self.tf_encode)
-    val_dataset = self.val_dataset.map(self.tf_encode)
-    test_dataset = self.test_dataset.map(self.tf_encode)
-
-    # Make batches
-    train_dataset = self.add_padded_batch(train_dataset, batch_size, padded_shapes=([-1], [-1]))
-    val_dataset = self.add_padded_batch(val_dataset, batch_size, padded_shapes=([-1], [-1]))
-    test_dataset = self.add_padded_batch(test_dataset, batch_size, padded_shapes=([-1], [-1]))
-
-    # Pad sequences
-    train_dataset = self.add_pad_sequences(train_dataset, maxlen)
-    val_dataset = self.add_pad_sequences(val_dataset, maxlen)
-    test_dataset = self.add_pad_sequences(test_dataset, maxlen)
+    # Tokenize datasets & Make batches
+    train_dataset = self.make_batches(self.train_dataset, buffer_size, batch_size)
+    val_dataset = self.make_batches(self.val_dataset, buffer_size, batch_size)
+    test_dataset = self.make_batches(self.test_dataset, buffer_size, batch_size)
 
     return train_dataset, val_dataset, test_dataset
   
