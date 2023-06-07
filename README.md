@@ -3,6 +3,11 @@
 
 <br>
 
+<img width="800" alt="스크린샷 2023-06-07 19 36 00" src="https://github.com/monzheld/Transformer_English-to-French-Translation/assets/93971420/b4c3d184-5c83-4650-872f-3cf8788634f7">
+
+
+<br>
+
 ## 제작 기간
 
 - 제작 기간: 2022.03.17 ~ 2022.03.22
@@ -34,7 +39,7 @@
 
 ## 개선 사항
 - [x] 데이터 업데이트
-- [ ] ipynb에서 py 파일로 수정
+- [x] ipynb에서 py 파일로 수정
 - [x] 평가지표로 BLEU Score 사용 
 - [x] Post-Layer Normalization 에서 Pre-Layer Normalization 방식으로 수정  
 
