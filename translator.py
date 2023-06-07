@@ -1,7 +1,10 @@
 import os
+import logging
 import tensorflow as tf
 
 from data_loader import Tokenization
+
+logging.getLogger('tensorflow').setLevel(logging.ERROR)  
 
 tokenizer = Tokenization()
 tokenizer_src, tokenizer_trg = tokenizer.load_tokenizer()
