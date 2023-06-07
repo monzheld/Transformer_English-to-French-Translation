@@ -42,6 +42,7 @@
 - [x] ipynb에서 py 파일로 수정
 - [x] 평가지표로 BLEU Score 사용 
 - [x] Post-Layer Normalization 에서 Pre-Layer Normalization 방식으로 수정  
+- [ ] 에러 해결 
 
 
 <br>
