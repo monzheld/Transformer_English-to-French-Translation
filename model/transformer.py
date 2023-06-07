@@ -2,7 +2,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-
 def get_angles(pos, i, d_model):
     angle_rates = 1 / np.power(10000, (2 * (i//2)) / np.float32(d_model))
     return pos * angle_rates
@@ -125,23 +124,23 @@ def point_wise_feed_forward_network(d_model, dff):
         ])
 
 
-class PreLayerNormalization(tf.keras.layers.Layer):
-    def __init__(self, epsilon=1e-6):
-        super(PreLayerNormalization, self).__init__()
-        self.epsilon = epsilon
+# class PreLayerNormalization(tf.keras.layers.Layer):
+#     def __init__(self, epsilon=1e-6):
+#         super(PreLayerNormalization, self).__init__()
+#         self.epsilon = epsilon
 
-    def build(self, input_shape):
-        d_model = input_shape[-1]
-        self.gamma = self.add_weight("gamma", shape=[d_model], initializer="ones")
-        self.beta = self.add_weight("beta", shape=[d_model], initializer="zeros")
-        super(PreLayerNormalization, self).build(input_shape)
+#     def build(self, input_shape):
+#         d_model = input_shape[-1]
+#         self.gamma = self.add_weight("gamma", shape=[d_model], initializer="ones")
+#         self.beta = self.add_weight("beta", shape=[d_model], initializer="zeros")
+#         super(PreLayerNormalization, self).build(input_shape)
 
-    def call(self, inputs):
-        mean = tf.keras.backend.mean(inputs, axis=-1, keepdims=True)
-        variance = tf.keras.backend.mean(tf.keras.backend.square(inputs - mean), axis=-1, keepdims=True)
-        norm_inputs = (inputs - mean) / tf.keras.backend.sqrt(variance + self.epsilon)
-        output = self.gamma * norm_inputs + self.beta
-        return output
+#     def call(self, inputs):
+#         mean = tf.keras.backend.mean(inputs, axis=-1, keepdims=True)
+#         variance = tf.keras.backend.mean(tf.keras.backend.square(inputs - mean), axis=-1, keepdims=True)
+#         norm_inputs = (inputs - mean) / tf.keras.backend.sqrt(variance + self.epsilon)
+#         output = self.gamma * norm_inputs + self.beta
+#         return output
 
 
 class EncoderBlock(tf.keras.layers.Layer):
@@ -150,12 +149,14 @@ class EncoderBlock(tf.keras.layers.Layer):
 
         # Multi-Head Attention
         self.mha = MultiHeadAttention(d_model, num_heads)
-        self.layernorm1 = PreLayerNormalization()
+        ## self.layernorm1 = PreLayerNormalization()
+        self.layernorm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.dropout1 = tf.keras.layers.Dropout(rate)
 
         # Position-wise FFNN
         self.ffn = point_wise_feed_forward_network(d_model, dff)
-        self.layernorm2 = PreLayerNormalization()
+        ## self.layernorm2 = PreLayerNormalization()
+        self.layernorm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.dropout2 = tf.keras.layers.Dropout(rate)
     
     def call(self, x, training, mask):
@@ -202,17 +203,20 @@ class DecoderBlock(tf.keras.layers.Layer):
 
         # self-attention in Decoder
         self.mha1 = MultiHeadAttention(d_model, num_heads)
-        self.layernorm1 = PreLayerNormalization()
+        ## self.layernorm1 = PreLayerNormalization()
+        self.layernorm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.dropout1 = tf.keras.layers.Dropout(rate)
 
         # Encoder-Decoder attention
         self.mha2 = MultiHeadAttention(d_model, num_heads)
-        self.layernorm2 = PreLayerNormalization()
+        ## self.layernorm2 = PreLayerNormalization()
+        self.layernorm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.dropout2 = tf.keras.layers.Dropout(rate)
 
         # Position-wise FFNN
         self.ffn = point_wise_feed_forward_network(d_model, dff)
-        self.layernorm3 = PreLayerNormalization()
+        ## self.layernorm3 = PreLayerNormalization()
+        self.layernorm3 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.dropout3 = tf.keras.layers.Dropout(rate)
     
     def call(self, x, enc_output, training, look_ahead_mask, padding_mask):
@@ -355,8 +359,8 @@ class Transformer(tf.keras.Model):
                                target_vocab_size, pe_target, rate)
         
         self.final_layer = tf.keras.layers.Dense(target_vocab_size)
-    
-    def call(self, inputs, training):
+
+    def call(self, inputs, training=False):
         inp, tar = inputs
 
         enc_padding_mask, look_ahead_mask, dec_padding_mask = self.create_masks(inp, tar)
